@@ -3,7 +3,7 @@ package datastore
 import (
 	"github.com/d2g/cloudpathway/kernelmanager"
 	"github.com/d2g/unqlitego"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net"
 )

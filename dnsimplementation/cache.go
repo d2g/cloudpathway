@@ -3,7 +3,7 @@ package dnsimplementation
 import (
 	"github.com/d2g/unqlitego"
 	"github.com/miekg/dns"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net"
 	"reflect"
