@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"github.com/d2g/packetclassification"
+	_ "github.com/d2g/packetclassification/l7filter"
 	"log"
 )
 

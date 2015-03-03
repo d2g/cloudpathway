@@ -2,8 +2,10 @@
 	"HTTP":{
 		"Port":"80",
 		"Files":"static/",
-		"SessionTimeout":3600,
-		"DeveloperMode":true
+		"DeveloperMode":true,
+		"Sessions":{
+			"Timeout":7200
+		}
 	},
 	"ConnectionManager":{
 		"Disabled":true,

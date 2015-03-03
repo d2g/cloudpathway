@@ -41,7 +41,7 @@ func (t *Internet) Base() string {
 
 func (t *Internet) index(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	connectionhelper, err := datastore.GetConnectionHelper()
 	if err != nil {
@@ -66,7 +66,7 @@ func (t *Internet) index(response http.ResponseWriter, request *http.Request) {
 	}
 
 	//TODO: Remove.
-	connections = datastore.GetExampleConnections()
+	//connections = datastore.GetExampleConnections()
 
 	devices, err := deviceHelper.GetDevices()
 	// Check for error when loading devices.
@@ -146,7 +146,7 @@ func (t *Internet) index(response http.ResponseWriter, request *http.Request) {
 
 func (t *Internet) connection(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	user := t.Sessions.CurrentUser(response, request)
+	user := t.Sessions.CurrentUser(request)
 
 	connectionhelper, err := datastore.GetConnectionHelper()
 	if err != nil {

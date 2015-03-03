@@ -2,12 +2,13 @@ package dnsimplementation
 
 import (
 	"bytes"
-	"github.com/d2g/cloudpathway/datastore"
-	"github.com/d2g/cloudpathway/networktools"
-	"github.com/miekg/dns"
 	"log"
 	"net"
 	"strings"
+
+	"github.com/d2g/cloudpathway/datastore"
+	"github.com/d2g/cloudpathway/networktools"
+	"github.com/miekg/dns"
 )
 
 func Hijack(response dns.ResponseWriter, message *dns.Msg) (bool, error) {
@@ -52,18 +53,18 @@ func Hijack(response dns.ResponseWriter, message *dns.Msg) (bool, error) {
 
 				if usersFiltercollection.Username != "" {
 					//Get the collections helper.
-					filterCollectionsHelper, err := datastore.GetFilterCollectionHelper()
+					domainCollectionsHelper, err := datastore.GetDomainCollectionHelper()
 					if err != nil {
 						return false, err
 					}
 
 					//Start Moving down the domain (i.e. removing subdomains etc)
-					collections := make([]datastore.FilterCollection, 0)
+					collections := make([]datastore.DomainCollection, 0)
 
 					domain := strings.TrimSuffix(message.Question[0].Name, ".")
 
 					for {
-						additionalCollections, err := filterCollectionsHelper.GetFilterCollectionsWithDomain(domain)
+						additionalCollections, err := domainCollectionsHelper.GetDomainCollectionsWith(domain)
 						if err != nil {
 							return false, err
 						}
@@ -81,7 +82,9 @@ func Hijack(response dns.ResponseWriter, message *dns.Msg) (bool, error) {
 
 					//Does the domain appear in any collections??
 					for _, collection := range collections {
-						if usersFiltercollection.ContainsCollection(collection.Name) {
+						log.Printf("Debug: TODO: %v \n", collection)
+						//TODO: Fix
+						if usersFiltercollection.ContainsCollection("") { //}string(collection)) {
 							//The Url Should be blocked...
 							//For Now lets just not respond with a DNS record...
 

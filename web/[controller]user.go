@@ -41,7 +41,7 @@ func (t *User) Base() string {
 
 func (t *User) index(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	user := t.Sessions.CurrentUser(response, request)
+	user := t.Sessions.CurrentUser(request)
 
 	// Get all users.
 	userHelper, err := datastore.GetUserHelper()
@@ -93,7 +93,7 @@ func (t *User) index(response http.ResponseWriter, request *http.Request) {
  */
 func (t *User) edit(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	user := t.Sessions.CurrentUser(response, request)
+	user := t.Sessions.CurrentUser(request)
 
 	// Get the user.
 	username := mux.Vars(request)["username"]
@@ -137,7 +137,7 @@ func (t *User) edit(response http.ResponseWriter, request *http.Request) {
  */
 func (t *User) newuser(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	user := t.Sessions.CurrentUser(response, request)
+	user := t.Sessions.CurrentUser(request)
 
 	// Setup the data structure to pass to the page.
 	data := struct {

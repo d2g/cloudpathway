@@ -46,7 +46,7 @@ func (t *Device) Base() string {
  */
 func (t *Device) index(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// If there isn't a current session user, redirect to login.
 	if myuser.Username == "" {
@@ -101,7 +101,7 @@ func (t *Device) index(response http.ResponseWriter, request *http.Request) {
 
 func (t *Device) edit(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// Get the device.
 	macAddress := mux.Vars(request)["macAddress"]

@@ -2,14 +2,15 @@ package web
 
 import (
 	"bufio"
-	"github.com/d2g/cloudpathway/datastore"
-	"github.com/d2g/controller"
-	"github.com/gorilla/mux"
 	"log"
 	"net"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/d2g/cloudpathway/datastore"
+	"github.com/d2g/controller"
+	"github.com/gorilla/mux"
 )
 
 type Developer struct {
@@ -120,48 +121,50 @@ func (t *Developer) importcollections(response http.ResponseWriter, request *htt
 
 			scanner := bufio.NewScanner(file)
 
-			collectionHelper, err := datastore.GetFilterCollectionHelper()
+			collectionHelper, err := datastore.GetDomainCollectionHelper()
 			if err != nil {
 				log.Println("Error: Getting Helper Error:" + err.Error())
 				http.Error(response, err.Error(), 500)
 				return err
 			}
 
-			collection, err := collectionHelper.GetFilterCollection(info.Name())
+			collection, err := collectionHelper.GetDomainCollection(info.Name())
 			if err != nil {
 				log.Println("Error: Getting Collection:" + err.Error())
 				http.Error(response, err.Error(), 500)
 				return err
 			}
 
-			collection.Name = info.Name()
+			//collection = datastore.DomainCollection(info.Name())
+			collection = datastore.DomainCollection{}
 
-			if collection.Domains == nil {
-				collection.Domains = make([]string, 0, 0)
-				for scanner.Scan() {
-					collection.Domains = append(collection.Domains, scanner.Text())
-				}
-			} else {
-				for scanner.Scan() {
-					for _, existingDomain := range collection.Domains {
-						if existingDomain == scanner.Text() {
-							//Yeah lets goto! Aka Break 2
-							goto Break2
-						}
-					}
-					collection.Domains = append(collection.Domains, scanner.Text())
+			//TODO: FIX
+			//if collection.Domains == nil {
+			//	collection.Domains = make([]string, 0, 0)
+			//	for scanner.Scan() {
+			//		collection.Domains = append(collection.Domains, scanner.Text())
+			//	}
+			//} else {
+			//	for scanner.Scan() {
+			//		for _, existingDomain := range collection.Domains {
+			//			if existingDomain == scanner.Text() {
+			//				//Yeah lets goto! Aka Break 2
+			//				goto Break2
+			//			}
+			//		}
+			//		collection.Domains = append(collection.Domains, scanner.Text())
 
-				Break2:
-				}
-			}
+			//	Break2:
+			//	}
+			//}
 
 			if err := scanner.Err(); err != nil {
 				log.Println("Warning: Importing Collection \"" + path + "\":" + err.Error())
 			}
 
-			err = collectionHelper.SetFilterCollection(collection)
+			err = collectionHelper.SetDomainCollection(collection)
 			if err != nil {
-				log.Println("Warning: Saving Collection \"" + collection.Name + "\":" + err.Error())
+				//log.Println("Warning: Saving Collection \"" + string(collection) + "\":" + err.Error())
 			}
 		}
 		return nil
@@ -188,7 +191,7 @@ func (t *Developer) access(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	filterCollectionHelper, err := datastore.GetFilterCollectionHelper()
+	domainCollectionHelper, err := datastore.GetDomainCollectionHelper()
 	if err != nil {
 		log.Println("Error:" + err.Error())
 		http.Error(response, err.Error(), 500)
@@ -196,14 +199,15 @@ func (t *Developer) access(response http.ResponseWriter, request *http.Request) 
 	}
 
 	for _, collectionName := range userFilterCollections.Collections {
-		collection, err := filterCollectionHelper.GetFilterCollection(collectionName)
+		collection, err := domainCollectionHelper.GetDomainCollection(collectionName)
+		log.Printf("Debug: Todo %v\n", collection)
 		if err != nil {
 			log.Println("Error:" + err.Error())
 			http.Error(response, err.Error(), 500)
 			return
 		}
 
-		for _, domain := range collection.Domains {
+		for _, domain := range []string{} { //TODO: FIX Was collection.Domains
 			if domain == mux.Vars(request)["domain"] {
 				log.Println("Blocked")
 				return
@@ -234,14 +238,14 @@ func (t *Developer) quickaccess(response http.ResponseWriter, request *http.Requ
 		return
 	}
 
-	filterCollectionHelper, err := datastore.GetFilterCollectionHelper()
+	domainCollectionHelper, err := datastore.GetDomainCollectionHelper()
 	if err != nil {
 		log.Println("Error:" + err.Error())
 		http.Error(response, err.Error(), 500)
 		return
 	}
 
-	inCollections, err := filterCollectionHelper.GetFilterCollectionsWithDomain(mux.Vars(request)["domain"])
+	inCollections, err := domainCollectionHelper.GetDomainCollectionsWith(mux.Vars(request)["domain"])
 	if err != nil {
 		log.Println("Error:" + err.Error())
 		http.Error(response, err.Error(), 500)
@@ -250,8 +254,10 @@ func (t *Developer) quickaccess(response http.ResponseWriter, request *http.Requ
 
 	for _, collection := range inCollections {
 		for _, userCollectionName := range userFilterCollections.Collections {
-			if userCollectionName == collection.Name {
-				log.Println("Blocked")
+			if userCollectionName == "" { //}string(collection) {
+				log.Println("Debug: Blocked")
+				log.Println("%v\n", collection)
+
 				return
 			}
 		}

@@ -2,10 +2,11 @@ package datastore
 
 import (
 	"bytes"
-	"github.com/d2g/dhcp4server/leasepool"
-	"github.com/d2g/unqlitego"
 	"log"
 	"net"
+
+	"github.com/d2g/dhcp4server/leasepool"
+	"github.com/d2g/unqlitego"
 )
 
 type leasehelper struct {
@@ -22,12 +23,12 @@ func GetLeaseHelper() (*leasehelper, error) {
 		var err error
 
 		leaseHelperSingleton = new(leasehelper)
-		leaseHelperSingleton.collection, err = unqlitego.NewDatabase("Lease.unqlite")
+		leaseHelperSingleton.collection, err = unqlitego.NewDatabase("userdata/Lease.unqlite")
 		if err != nil {
 			return leaseHelperSingleton, err
 		}
 
-		leaseHelperSingleton.macaddressKey, err = unqlitego.NewDatabase("MacaddressToLease.key.unqlite")
+		leaseHelperSingleton.macaddressKey, err = unqlitego.NewDatabase("userdata/MacaddressToLease.key.unqlite")
 		if err != nil {
 			return leaseHelperSingleton, err
 		}

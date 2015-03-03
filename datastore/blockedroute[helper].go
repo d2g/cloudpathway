@@ -1,11 +1,12 @@
 package datastore
 
 import (
+	"log"
+	"net"
+
 	"github.com/d2g/cloudpathway/kernelmanager"
 	"github.com/d2g/unqlitego"
 	"gopkg.in/mgo.v2/bson"
-	"log"
-	"net"
 )
 
 type blockroutehelper struct {
@@ -19,7 +20,7 @@ func GetBlockedRouteHelper() (*blockroutehelper, error) {
 		var err error
 
 		blockRouteHelperSingleton = new(blockroutehelper)
-		blockRouteHelperSingleton.collection, err = unqlitego.NewDatabase("Blocked.unqlite")
+		blockRouteHelperSingleton.collection, err = unqlitego.NewDatabase("userdata/Blocked.unqlite")
 		blockRouteHelperSingleton.collection.SetMarshal(bson.Marshal)
 		blockRouteHelperSingleton.collection.SetUnmarshal(bson.Unmarshal)
 		if err != nil {

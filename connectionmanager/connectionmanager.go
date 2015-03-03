@@ -2,11 +2,7 @@ package connectionmanager
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/ipv4"
 	"errors"
-	"github.com/d2g/cloudpathway/datastore"
-	"github.com/d2g/netlink"
-	"github.com/d2g/tcp"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -14,6 +10,11 @@ import (
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/d2g/cloudpathway/datastore"
+	"github.com/d2g/netlink"
+	"github.com/d2g/tcp"
+	"golang.org/x/net/ipv4"
 )
 
 type connectionManager struct {
@@ -357,6 +358,10 @@ func (t *connectionManager) Classify() error {
 	wg.Wait()
 	log.Println("Error: We seem to be existing packet processing??")
 	return errors.New("Error: Packet Processing Exited?")
+}
+
+func (t *connectionManager) Output() chan datastore.ClassifiedConnection {
+	return t.classification.output
 }
 
 func (t *connectionManager) DumpConnectionToDisk(connection *datastore.Connection) error {

@@ -16,6 +16,7 @@ func (this *Hosts) Add(hostname string, ip net.IP) error {
 }
 
 func (this *Hosts) Get(hostname string) (bool, net.IP, error) {
+	log.Printf("Trace: Trying to Find Hostname \"%s\" Locally", hostname)
 	ip := this.Devices[hostname]
 
 	if ip != nil {

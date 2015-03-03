@@ -2,9 +2,10 @@ package datastore
 
 import (
 	"bytes"
-	"github.com/d2g/unqlitego"
 	"log"
 	"net"
+
+	"github.com/d2g/unqlitego"
 )
 
 type devicehelper struct {
@@ -20,17 +21,17 @@ func GetDeviceHelper() (*devicehelper, error) {
 		var err error
 
 		deviceHelperSingleton = new(devicehelper)
-		deviceHelperSingleton.collection, err = unqlitego.NewDatabase("Device.unqlite")
+		deviceHelperSingleton.collection, err = unqlitego.NewDatabase("userdata/Device.unqlite")
 		if err != nil {
 			return deviceHelperSingleton, err
 		}
 
-		deviceHelperSingleton.ipAddressKey, err = unqlitego.NewDatabase("IPtoDevice.key.unqlite")
+		deviceHelperSingleton.ipAddressKey, err = unqlitego.NewDatabase("userdata/IPtoDevice.key.unqlite")
 		if err != nil {
 			return deviceHelperSingleton, err
 		}
 
-		deviceHelperSingleton.hostnameKey, err = unqlitego.NewDatabase("HostnametoDevice.key.unqlite")
+		deviceHelperSingleton.hostnameKey, err = unqlitego.NewDatabase("userdata/HostnametoDevice.key.unqlite")
 		if err != nil {
 			return deviceHelperSingleton, err
 		}
@@ -237,7 +238,7 @@ func (this *devicehelper) GetDevices() ([]Device, error) {
 
 	err = cursor.Close()
 	if err != nil {
-		log.Println("3:" + err.Error())
+		log.Println("Error:" + err.Error())
 	}
 	return devices, err
 }

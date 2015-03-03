@@ -2,8 +2,8 @@ package datastore
 
 import (
 	"bytes"
-	"code.google.com/p/go.net/ipv4"
 	"github.com/d2g/tcp"
+	"golang.org/x/net/ipv4"
 	"net"
 	"time"
 )

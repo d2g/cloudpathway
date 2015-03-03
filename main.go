@@ -2,11 +2,18 @@ package main
 
 import (
 	"bytes"
-	//"database/sql"
 	"encoding/json"
+	"io/ioutil"
+	"log"
+	"net"
+	_ "net/http/pprof"
+	"os"
+	"time"
+
 	"github.com/d2g/cloudpathway/connectionmanager"
 	"github.com/d2g/cloudpathway/datastore"
 	"github.com/d2g/cloudpathway/dnsimplementation"
+	"github.com/d2g/cloudpathway/etl"
 	"github.com/d2g/cloudpathway/kernelmanager"
 	"github.com/d2g/cloudpathway/networktools"
 	"github.com/d2g/cloudpathway/web"
@@ -14,14 +21,23 @@ import (
 	"github.com/d2g/dhcp4server"
 	"github.com/d2g/dhcp4server/leasepool"
 	"github.com/d2g/dnsforwarder"
-	"io/ioutil"
-	"log"
-	"net"
-	_ "net/http/pprof"
-	"time"
+	"github.com/d2g/logfilter"
+	"github.com/d2g/rotatingfile"
 )
 
 func main() {
+	log.SetFlags(log.Llongfile | log.Ldate | log.Ltime)
+	log.SetOutput(&logfilter.Capture{
+		Flags:   log.Flags(),
+		Filters: []logfilter.Filter{
+		//logfilter.Filter{
+		//	Mode:     logfilter.INCLUDE,
+		//	Filename: "github.com/d2g/",
+		//	Level:    logfilter.TRACE,
+		//},
+		},
+	})
+
 	configuration_file, err := ioutil.ReadFile("config.json")
 	if err != nil {
 		log.Println("Error Loading config.json")
@@ -45,6 +61,8 @@ func main() {
 	go StartConnectionManager(&configuration)
 
 	go StartKernelManager(&configuration.KernelManager)
+
+	go StartETLProcessing()
 
 	//Start The HTTP Service
 	StartHTTPService(&configuration.HTTP)
@@ -74,15 +92,16 @@ func StartDNSService(configuration *dnsforwarder.Configuration) {
 	hosts := dnsimplementation.Hosts{}
 	hosts.Devices = make(map[string]net.IP)
 
+	// TODO: Thinnk about if we do have multi active interfaces one is just overwriting the other.
 	activeIPs, err := networktools.ActiveIPInterfaces()
 	if err == nil {
 		for _, activeIP := range activeIPs {
 			switch activeIP.(type) {
 			case *net.IPAddr:
-				hosts.Add("cloudpathway", activeIP.(*net.IPAddr).IP)
+				hosts.Add("cloudpathway.d2g.org.uk", activeIP.(*net.IPAddr).IP)
 				break
 			case *net.IPNet:
-				hosts.Add("cloudpathway", activeIP.(*net.IPNet).IP)
+				hosts.Add("cloudpathway.d2g.org.uk", activeIP.(*net.IPNet).IP)
 				break
 			}
 		}
@@ -258,9 +277,58 @@ func StartConnectionManager(configuration *Configuration) {
 		log.Println("Warning: Connection Manager Processing is disabled by configuration (config.json)")
 	}
 
-	err = connectionManager.Listen()
+	go func() {
+		err = connectionManager.Listen()
+		if err != nil {
+			log.Fatal("Connection Manager Reader Error:" + err.Error())
+		}
+	}()
+
+	//TODO: Replace With ETL Solution
+	//dbconnection, err := sql.Open("sqlite3", "./reports.sqlite")
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//defer dbconnection.Close()
+
+	file, err := os.Create("connections.log")
 	if err != nil {
-		log.Fatal("Connection Manager Reader Error:" + err.Error())
+		log.Fatal("Error Creating Connection Log File:" + err.Error())
+	}
+
+	rotatingfile := rotatingfile.File{
+		File:           file,
+		MaxFileSize:    10485760, //10Meg
+		MaxBackupIndex: 10,       //10 Files + Original
+	}
+
+	//Influxdb
+	//influxclient, err := client.NewClient(
+	//	client.Config{
+	//		URL: url.URL{
+	//			Scheme: "http",
+	//			Host:   "sandbox.influxdb.com:8086",
+	//		},
+	//		Username: "d2g",
+	//		Password: "influxdb.org",
+	//	},
+	//)
+	//if err != nil {
+	//	log.Fatal("Influxdb Error " + err.Error())
+	//}
+
+	processing := etl.ClassifiedConnectionProcessors{
+		&etl.Log{
+			File: &rotatingfile,
+		},
+		//&etl.InfluxDB{
+		//	Client: influxclient,
+		//},
+	}
+
+	err = processing.Process(connectionManager.Output())
+	if err != nil {
+		log.Fatal("Error ETL Proccessing " + err.Error())
 	}
 }
 
@@ -282,20 +350,7 @@ func StartKernelManager(configuration *kernelmanager.Configuration) {
 }
 
 func StartETLProcessing() {
-	// Issue: 8702 Is currently blocking me moving this forward.
+	// Issue: 8702 Means this doesn't compile in Windows 386.
 	// https://code.google.com/p/go/issues/detail?id=8702
 
-	//dbconnection, err := sql.Open("sqlite3", "./reports.sqlite")
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//defer dbconnection.Close()
-
-	//processing := etl.ClassifiedConnectionProcessors{
-	//	&etl.Log{
-	//		DB: dbconnection,
-	//	},
-	//}
-
-	//log.Printf("%v\n", processing)
 }

@@ -1,8 +1,9 @@
 package datastore
 
 import (
-	"github.com/d2g/unqlitego"
 	"log"
+
+	"github.com/d2g/unqlitego"
 )
 
 type userhelper struct {
@@ -16,7 +17,7 @@ func GetUserHelper() (*userhelper, error) {
 		var err error
 
 		userHelperSingleton = new(userhelper)
-		userHelperSingleton.collection, err = unqlitego.NewDatabase("Users.unqlite")
+		userHelperSingleton.collection, err = unqlitego.NewDatabase("userdata/Users.unqlite")
 		if err != nil {
 			return userHelperSingleton, err
 		}

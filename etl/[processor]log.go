@@ -1,47 +1,34 @@
 package etl
 
 import (
-	"database/sql"
+	"encoding/csv"
+	"log"
+	"strconv"
+
 	"github.com/d2g/cloudpathway/datastore"
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/d2g/rotatingfile"
 )
 
 type Log struct {
-	DB       *sql.DB
-	statment *sql.Stmt
+	File *rotatingfile.File
 }
 
 func (t *Log) Process(connection datastore.ClassifiedConnection) (err error) {
 
-	if t.statment == nil {
-		t.statment, err = t.DB.Prepare(
-			`INSERT INTO tbl_log(
-							log_source_ip,
-							log_source_port,
-							log_destination_ip,
-							log_destination_port,
-							log_packets,
-							log_updated,
-							log_device_id,
-							log_username,
-							log_protocol
-							) VALUES(?,?,?,?,?,?,?,?,?)`,
-		)
-		if err != nil {
-			return
-		}
-	}
-
-	_, err = t.statment.Exec(connection.SourceIP().To4().String(),
-		int(connection.SourcePort()),
-		connection.DestinationIP().To4().String(),
-		int(connection.DestinationPort()),
-		connection.Packets(), //array of array of bytes?
-		connection.Updated(),
-		connection.DeviceID().String(),
-		connection.Username(),
-		connection.Protocol(),
+	w := csv.NewWriter(t.File)
+	log.Printf("Trace: Logging Connection:%v\n", connection)
+	w.Write(
+		[]string{
+			connection.Updated().Format("2006-01-02 15:04:05"),
+			connection.SourceIP().To4().String() + ":" + strconv.FormatUint(uint64(connection.SourcePort()), 10),
+			connection.DestinationIP().To4().String() + ":" + strconv.FormatUint(uint64(connection.DestinationPort()), 10),
+			connection.Username(),
+			connection.DeviceID().String(),
+			connection.Protocol(),
+		},
 	)
+	w.Flush()
 
+	err = w.Error()
 	return
 }

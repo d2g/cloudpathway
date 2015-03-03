@@ -32,7 +32,7 @@ type AuthenticationHandler struct {
 
 func (s *AuthenticationHandler) ServeHTTP(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := s.Sessions.CurrentUser(response, request)
+	myuser := s.Sessions.CurrentUser(request)
 
 	// If there isn't a current session user, redirect to login.
 	if myuser.Username == "" {

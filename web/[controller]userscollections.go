@@ -1,12 +1,13 @@
 package web
 
 import (
+	"log"
+	"net/http"
+
 	"github.com/d2g/cloudpathway/datastore"
 	"github.com/d2g/controller"
 	template "github.com/d2g/goti/html"
 	"github.com/gorilla/mux"
-	"log"
-	"net/http"
 )
 
 type UsersCollections struct {
@@ -42,7 +43,7 @@ func (t *UsersCollections) Base() string {
  */
 func (t *UsersCollections) index(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// Get all users.
 	userHelper, err := datastore.GetUserHelper()
@@ -94,7 +95,7 @@ func (t *UsersCollections) index(response http.ResponseWriter, request *http.Req
  */
 func (t *UsersCollections) edit(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// Get the user filter collections.
 	username := mux.Vars(request)["username"]
@@ -130,8 +131,8 @@ func (t *UsersCollections) edit(response http.ResponseWriter, request *http.Requ
 	}
 
 	// Get all collections to display on the page.
-	filterCollectionHelper, err := datastore.GetFilterCollectionHelper()
-	allCollections, err := filterCollectionHelper.GetFilterCollections()
+	domainCollectionHelper, err := datastore.GetDomainCollectionHelper()
+	allCollections, err := domainCollectionHelper.GetDomainCollections()
 
 	// Check for error when loading collections.
 	if err != nil {
@@ -145,7 +146,7 @@ func (t *UsersCollections) edit(response http.ResponseWriter, request *http.Requ
 		User                  datastore.User
 		UserFilterCollections datastore.UserFilterCollections
 		FilterCollectionsUser *datastore.User
-		AllCollections        []datastore.FilterCollection
+		AllCollections        []datastore.DomainCollection
 	}{
 		"userAccessSettings",
 		myuser,

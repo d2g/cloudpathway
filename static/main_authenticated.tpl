@@ -29,12 +29,14 @@
         <li {{if eq .Action "userSettings"}}class="selected"{{end}}>
           <a href="/users/">Users</a>
         </li>
+		<!--
         <li {{if eq .Action "collectionSettings"}}class="selected"{{end}}>
           <a href="/collections/">Access Lists</a>
         </li>
         <li {{if eq .Action "userAccessSettings"}}class="selected"{{end}}>
           <a href="/useraccess/">User Access</a>
         </li>
+		-->
       </ul>
     </nav>
     {{end}}

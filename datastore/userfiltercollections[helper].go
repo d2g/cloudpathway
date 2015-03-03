@@ -1,8 +1,9 @@
 package datastore
 
 import (
-	"github.com/d2g/unqlitego"
 	"log"
+
+	"github.com/d2g/unqlitego"
 )
 
 type userfiltercollectionhelper struct {
@@ -16,7 +17,7 @@ func GetUserFilterCollectionsHelper() (*userfiltercollectionhelper, error) {
 		var err error
 
 		userfiltercollectionHelperSingleton = new(userfiltercollectionhelper)
-		userfiltercollectionHelperSingleton.collection, err = unqlitego.NewDatabase("UsersFilterCollections.unqlite")
+		userfiltercollectionHelperSingleton.collection, err = unqlitego.NewDatabase("userdata/UsersFilterCollections.unqlite")
 		if err != nil {
 			return userfiltercollectionHelperSingleton, err
 		}

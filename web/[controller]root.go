@@ -25,6 +25,8 @@ func (t *Root) Routes() (http.Handler, error) {
 	/*
 	 * Setup my Routes.
 	 */
+	//router.Host("cloudpathway.d2g.org.uk")
+
 	router.HandleFunc(t.Base()+"login", t.login)
 	router.HandleFunc(t.Base()+"logoff", t.logoff)
 	router.HandleFunc(t.Base(), t.index)
@@ -46,7 +48,7 @@ func (t *Root) Base() string {
 
 func (t *Root) index(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	user := t.Sessions.CurrentUser(response, request)
+	user := t.Sessions.CurrentUser(request)
 
 	// If there isn't a current session user, redirect to login.
 	if user.Username == "" {
@@ -154,6 +156,13 @@ func (t *Root) login(response http.ResponseWriter, request *http.Request) {
 				//Device is within our network (It might have been external)
 				device.CurrentUser = &myuser
 				deviceHelper.SetDevice(&device)
+
+				err = t.Sessions.SetCurrentDevice(response, request, device)
+				if err != nil {
+					log.Println("Error: saving device to session " + err.Error())
+					http.Error(response, err.Error(), 500)
+					return
+				}
 			}
 
 			// Login successful, display the user dashboard.

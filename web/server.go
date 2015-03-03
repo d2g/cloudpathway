@@ -2,10 +2,13 @@ package web
 
 import (
 	"errors"
-	"github.com/d2g/controller"
-	"github.com/d2g/sessions"
 	"net/http"
 	"time"
+
+	"github.com/boltdb/bolt"
+	"github.com/d2g/controller"
+	"github.com/d2g/sessions"
+	"github.com/d2g/sessions/boltsessionstore"
 )
 
 type server struct {
@@ -24,18 +27,24 @@ func NewServer(configuration *Configuration) (*server, error) {
 		activeServer = new(server)
 		activeServer.configuration = configuration
 
-		sessionstore, err := sessions.NewUnqliteStore("Sessions.unqlite")
+		b, err := bolt.Open("userdata/Sessions.boltdb", 0666, nil)
 		if err != nil {
 			return nil, err
 		}
+		sessionstore := &boltsessionstore.BoltStore{
+			DB: b,
+		}
 
 		sessioninfo := sessions.SessionInfo{}
-		sessioninfo.Timeout = (4 * time.Hour)
+		sessioninfo.Timeout = (time.Duration(configuration.Sessions.Timeout) * time.Second)
 		sessioninfo.Store = sessionstore
 		sessioninfo.Cookie.Name = "GOSESSION"
 		sessioninfo.Cache = sessions.RequestSessions{make([]sessions.RequestSession, 0)}
 
 		activeServer.sessions = &ActiveSessions{sessioninfo}
+
+		//Start Session GC
+		go activeServer.sessions.GCSessions()
 
 		controllers := activeServer.Controllers()
 
@@ -98,7 +107,7 @@ func (t *server) Controllers() controller.HTTPControllers {
 
 		t.controllers = append(t.controllers, controller.HTTPController(&Root{
 			Sessions:        t.sessions,
-			NotFoundHandler: http.FileServer(http.Dir(t.configuration.Files)),
+			NotFoundHandler: http.Handler(NotFound{NotFoundHandler: http.FileServer(http.Dir(t.configuration.Files))}),
 		}).SetBase("/"))
 	}
 

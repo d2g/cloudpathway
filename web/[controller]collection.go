@@ -2,12 +2,13 @@ package web
 
 import (
 	"encoding/json"
+	"log"
+	"net/http"
+
 	"github.com/d2g/cloudpathway/datastore"
 	"github.com/d2g/controller"
 	template "github.com/d2g/goti/html"
 	"github.com/gorilla/mux"
-	"log"
-	"net/http"
 )
 
 type Collection struct {
@@ -50,11 +51,11 @@ func (t *Collection) Base() string {
  */
 func (t *Collection) index(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// Get all collections.
-	filterCollectionDataStoreHelper, err := datastore.GetFilterCollectionHelper()
-	allCollections, err := filterCollectionDataStoreHelper.GetFilterCollections()
+	domainCollectionDataStoreHelper, err := datastore.GetDomainCollectionHelper()
+	allCollections, err := domainCollectionDataStoreHelper.GetDomainCollections()
 
 	// Check for error when loading collections.
 	if err != nil {
@@ -74,7 +75,7 @@ func (t *Collection) index(response http.ResponseWriter, request *http.Request) 
 	data := struct {
 		Action         string
 		User           datastore.User
-		AllCollections []datastore.FilterCollection
+		AllCollections []datastore.DomainCollection
 		SaveComplete   bool
 		SaveError      bool
 	}{
@@ -95,18 +96,18 @@ func (t *Collection) index(response http.ResponseWriter, request *http.Request) 
  */
 func (t *Collection) edit(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// Get the collection.
 	collectionName := mux.Vars(request)["collection"]
-	filterCollectionDataStoreHelper, err := datastore.GetFilterCollectionHelper()
+	domainCollectionDataStoreHelper, err := datastore.GetDomainCollectionHelper()
 	if err != nil {
 		log.Println("DB Error:" + err.Error())
 		http.Error(response, err.Error(), 500)
 		return
 	}
 
-	collection, err := filterCollectionDataStoreHelper.GetFilterCollection(collectionName)
+	collection, err := domainCollectionDataStoreHelper.GetDomainCollection(collectionName)
 
 	// Check for error when loading collection.
 	if err != nil {
@@ -118,7 +119,7 @@ func (t *Collection) edit(response http.ResponseWriter, request *http.Request) {
 	data := struct {
 		Action     string
 		User       datastore.User
-		Collection datastore.FilterCollection
+		Collection datastore.DomainCollection
 	}{
 		"collectionSettings",
 		myuser,
@@ -135,7 +136,7 @@ func (t *Collection) edit(response http.ResponseWriter, request *http.Request) {
  */
 func (t *Collection) create(response http.ResponseWriter, request *http.Request) {
 	// Get the current session user.
-	myuser := t.Sessions.CurrentUser(response, request)
+	myuser := t.Sessions.CurrentUser(request)
 
 	// Setup the data structure to pass to the page.
 	data := struct {
@@ -155,7 +156,7 @@ func (t *Collection) create(response http.ResponseWriter, request *http.Request)
  * Handles saving a collection.
  */
 func (t *Collection) save(response http.ResponseWriter, request *http.Request) {
-	filterCollectionDataStoreHelper, err := datastore.GetFilterCollectionHelper()
+	domainCollectionDataStoreHelper, err := datastore.GetDomainCollectionHelper()
 
 	if err != nil {
 		log.Println("DB Error:" + err.Error())
@@ -163,11 +164,11 @@ func (t *Collection) save(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	collection := datastore.FilterCollection{}
-	collection.Name = request.FormValue("name")
+	//collection := datastore.DomainCollection(request.FormValue("name"))
+	collection := datastore.DomainCollection{}
 
 	// Save the collection.
-	err = filterCollectionDataStoreHelper.SetFilterCollection(collection)
+	err = domainCollectionDataStoreHelper.SetDomainCollection(collection)
 
 	// Check for error when saving collection.
 	if err != nil {
@@ -185,7 +186,7 @@ func (t *Collection) save(response http.ResponseWriter, request *http.Request) {
 func (t *Collection) remove(response http.ResponseWriter, request *http.Request) {
 	// Try and load a filter collection using the collection name.
 	collectionName := mux.Vars(request)["collection"]
-	filterCollectionDataStoreHelper, err := datastore.GetFilterCollectionHelper()
+	domainCollectionDataStoreHelper, err := datastore.GetDomainCollectionHelper()
 
 	if err != nil {
 		log.Println("DB Error:" + err.Error())
@@ -193,7 +194,7 @@ func (t *Collection) remove(response http.ResponseWriter, request *http.Request)
 		return
 	}
 
-	err = filterCollectionDataStoreHelper.DeleteFilterCollection(collectionName)
+	err = domainCollectionDataStoreHelper.DeleteDomainCollection(collectionName)
 
 	// Check for error when deleting collection.
 	if err != nil {
@@ -212,20 +213,20 @@ func (t *Collection) getFilterSiteList(response http.ResponseWriter, request *ht
 	filter := request.FormValue("filter")
 	log.Println(name)
 	log.Println(filter)
-	filterCollectionDataStoreHelper, err := datastore.GetFilterCollectionHelper()
-	collection, err := filterCollectionDataStoreHelper.GetFilterCollection(name)
+	//domainCollectionDataStoreHelper, err := datastore.GetDomainCollectionHelper()
+	//collection, err := domainCollectionDataStoreHelper.GetDomainCollection(name)
 
 	// Check for error when loading collection.
-	if err != nil {
-		http.Error(response, err.Error(), 500)
-		return
-	}
+	//if err != nil {
+	//	http.Error(response, err.Error(), 500)
+	//	return
+	//}
 
 	// Setup the data structure to return.
 	data := struct {
 		Sites []string
 	}{
-		collection.Domains,
+		[]string{}, //TODO: Fix
 	}
 
 	enc := json.NewEncoder(response)

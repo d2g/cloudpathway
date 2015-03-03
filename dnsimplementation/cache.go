@@ -1,14 +1,15 @@
 package dnsimplementation
 
 import (
-	"github.com/d2g/unqlitego"
-	"github.com/miekg/dns"
-	"gopkg.in/mgo.v2/bson"
 	"log"
 	"net"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/d2g/unqlitego"
+	"github.com/miekg/dns"
+	"gopkg.in/mgo.v2/bson"
 )
 
 type cache struct {
@@ -29,7 +30,7 @@ func GetCache() (*cache, error) {
 		var err error = nil
 		cacheSingleton = new(cache)
 
-		cacheSingleton.collection, err = unqlitego.NewDatabase("DNSCache.unqlite")
+		cacheSingleton.collection, err = unqlitego.NewDatabase("userdata/DNSCache.unqlite")
 		if err != nil {
 			return nil, err
 		}
@@ -40,7 +41,7 @@ func GetCache() (*cache, error) {
 		cacheSingleton.collection.SetMarshal(bson.Marshal)
 		cacheSingleton.collection.SetUnmarshal(bson.Unmarshal)
 
-		cacheSingleton.ipToHostname, err = unqlitego.NewDatabase("IPtoHostname.unqlite")
+		cacheSingleton.ipToHostname, err = unqlitego.NewDatabase("userdata/IPtoHostname.unqlite")
 		//Commit After 100 Changes
 		cacheSingleton.ipToHostname.CommitAfter = 100
 
@@ -57,22 +58,29 @@ func (this *cache) Add(message *dns.Msg) error {
 			return err
 		}
 
-		err = this.collection.SetObject(message.Question[0].Name, CacheRecord{Expiry: time.Now().Add(24 * time.Hour), Record: byteMessage})
-		for _, part := range message.Answer {
-			switch part.(type) {
-			case *dns.A:
-				cacheErr := this.ipToHostname.SetObject(part.(*dns.A).A.String(), strings.TrimSuffix(message.Question[0].Name, "."))
-				if cacheErr != nil {
-					log.Println("Warning: Error Adding/Updating Cache IP:" + part.(*dns.A).A.String() + " Hostname:" + strings.TrimSuffix(message.Question[0].Name, ".") + " Error:" + cacheErr.Error())
+		if len(message.Answer) > 0 {
+			err = this.collection.SetObject(message.Question[0].Name, CacheRecord{Expiry: time.Now().Add(time.Duration(message.Answer[0].Header().Ttl) * time.Second), Record: byteMessage})
+			if err != nil {
+				return err
+			}
+
+			for _, part := range message.Answer {
+				switch part.(type) {
+				case *dns.A:
+					cacheErr := this.ipToHostname.SetObject(part.(*dns.A).A.String(), strings.TrimSuffix(message.Question[0].Name, "."))
+					if cacheErr != nil {
+						log.Println("Warning: Error Adding/Updating Cache IP:" + part.(*dns.A).A.String() + " Hostname:" + strings.TrimSuffix(message.Question[0].Name, ".") + " Error:" + cacheErr.Error())
+					}
+				case *dns.CNAME:
+					//CNAME Don't contain the IP for reverse lookups.
+					//log.Printf("CNAME: Type:%s Value:%v", reflect.TypeOf(part).Name(), part)
+					//TODO: We should probably Add the CNAME as a hostname??
+				default:
+					log.Printf("Debug: DNS Message Answer Type:%s Value:%v", reflect.TypeOf(part).Name(), part)
 				}
-			case *dns.CNAME:
-				//CNAME Don't contain the IP for reverse lookups.
-				//log.Printf("CNAME: Type:%s Value:%v", reflect.TypeOf(part).Name(), part)
-				//TODO: We should probably Add the CNAME as a hostname??
-			default:
-				log.Printf("Type:%s Value:%v", reflect.TypeOf(part).Name(), part)
 			}
 		}
+
 		return err
 	}
 	return nil
