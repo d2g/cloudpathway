@@ -1,0 +1,67 @@
+[General]
+# Developer mode turns on unsupported features.
+DeveloperMode=true
+
+[HTTP]
+# Port Used to Server the Web Interface.
+Port=80
+# Location of the static web assests (i.e. css) 
+Assets="static/"
+
+[HTTP.Sessions]
+# Http Session Timeout
+Timeout=7200
+
+[ConnectionPublisher]
+# Disable the connection Publisher
+Disabled=true
+
+[ConnectionPublisher.Reader]
+# The ID of the Netlink Socket
+NetlinkSocketID = 31
+# The queue/buffer size for storing packet read from the kernel prior to processing
+# If the queue is full packets read are discarded.
+QueueSize = 1000
+
+[ConnectionPublisher.Connection]
+# The number of agents processing the packets received into active "Connections"
+Agents=1
+# The maximum number of packets in an active connection. When this number is 
+# reached the connection is marked as closed.
+MaxPackets=10000
+QueueSize = 1000
+Ignore=["127.0.0.1"]
+
+[ConnectionPublisher.GC]
+Disabled=false
+Timeout=10
+
+[ConnectionPublisher.Classification]
+Agents=1
+QueueSize=1000
+
+[ConnectionPublisher.Classification.Dump]
+All=false
+Unknown=true
+Path="./"
+
+[KernelManager]
+Disabled=false
+QueueSize=1000
+NetlinkSocketID=30
+
+[DNS]
+ReadTimeout=2
+WriteTimeout=2
+NameServers=["10.187.7.101:53"]
+TTL=600
+
+[DHCP]
+Disabled=true
+SubnetMask="255.255.255.0"
+Lease
+
+[DHCP.Leases]
+Duration=86400
+Start="192.168.1.1"
+End="192.168.1.254"

@@ -1,0 +1,46 @@
+.siteheader {
+  margin-left:20% ;
+  width: 60%;
+}
+
+.siteheader {
+  border-bottom-right-radius: 0em;
+  border-bottom-left-radius: 0em;
+  height: 2.625em;
+}
+
+@media(max-width: 420px) {
+
+.siteheader {
+  margin-left: 0;
+  width: 100%;
+}
+
+}
+
+.content {
+ 	clear: both;
+  	width: 60%;
+  	margin-left:20% ;
+	padding-bottom:1em;
+	color:#000000;
+	background-color:#FFFFFF;
+}
+
+header {
+  width: 60%;
+  margin: 0 0 0 20%;
+}
+
+
+@media(max-width: 420px) {
+  .content {
+    width: 100%;
+    margin: 0 0 0 0;
+  }
+
+  header {
+    width: 100%;
+    margin: 0 0 0 0;
+  }
+}

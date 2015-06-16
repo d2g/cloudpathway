@@ -1,0 +1,51 @@
+package main
+
+import ()
+
+type Configuration struct {
+	HTTP struct {
+		Port          int    `toml:"port"`
+		Files         string `toml:"files"`
+		DeveloperMode bool   `toml:"developer_mode"`
+		Timeout       int64  `toml:"session_timeout"`
+	} `toml:"httpd"`
+
+	CM struct {
+		Disabled bool `toml:"disabled"`
+
+		Reader struct {
+			Socket    int
+			QueueSize int
+		}
+
+		Manager struct {
+			Agents     int //Number of manager routines
+			Timeout    int //Number of seconds before we assume the connection has closed
+			MaxPackets int //Number of packets before we...
+			QueueSize  int //Number of Closed Connections on the outbound queue.
+			GCDisabled bool
+		}
+
+		Classification struct {
+			Agents    int //Number of classification Routines
+			QueueSize int //The maximum outbound queue size.
+			Dump      struct {
+				All     bool
+				Unknown bool
+				Path    string
+			}
+		}
+	} `toml:"cm"`
+
+	KernelManager kernelmanager.Configuration
+
+	DNS  dnsforwarder.Configuration
+	DHCP struct {
+		Disabled bool
+		Server   dhcp4server.Configuration
+		Leases   struct {
+			Start string
+			End   string
+		}
+	}
+}
